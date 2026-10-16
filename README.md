@@ -8,6 +8,23 @@ Companion storyboard: [`agentthree_azure_devops_multicloud_cicd_simulator_v2.htm
 
 ---
 
+## Implementation status
+
+| Area | Status | Notes |
+|------|--------|-------|
+| Gate pipeline (pytest, Checkov, MCP contracts, eval fixtures) | **Implemented (local + CI)** | Runs via `make` / `scripts/run-gates.sh` and GitHub Actions |
+| Terraform | **Validate only** | `fmt` + `validate` — never `apply` |
+| Container scan (Trivy) | **Implemented (filesystem scan)** | No registry push |
+| Deploy / rollback | **Simulated dry-run** | Manifests + health → rollback procedure; no AKS/GKE/EKS |
+| Approvals | **Local flag + optional GitHub Environment** | Not a live Azure DevOps org |
+| Cloud infrastructure | **Not deployed** | Simulator mapping only — see [docs/architecture.md](docs/architecture.md) |
+
+**Simulated vs cloud:** Security and evaluation *gates* are real and reproducible. Cloud *deployments* are intentionally simulated so the demo stays at $0.
+
+Architecture diagram: [docs/architecture.md](docs/architecture.md)
+
+---
+
 ## What this proves
 
 | Gate | How (free) |
@@ -47,6 +64,16 @@ Or one shot:
 ./scripts/run-gates.sh fail-checkov
 ./scripts/run-gates.sh fail-eval
 ```
+
+### Reproducible tests
+
+```bash
+make setup
+pytest -q                 # unit + MCP + eval + approval helpers
+./scripts/run-gates.sh pass
+```
+
+Expected: all pytest cases green; `pass` scenario exits 0 with Checkov/eval/approval evidence written under `artifacts/` (when present).
 
 Optional tools (CI installs them; local optional):
 
